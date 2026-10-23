@@ -1,0 +1,6 @@
+{
+  "name": "DocuQA - Production RAG Platform & Evaluation Harness",
+  "description": "Production-grade Document QA Bot using Retrieval-Augmented Generation with chunking strategies, cross-encoder re-ranking, token streaming, and an evaluation harness.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

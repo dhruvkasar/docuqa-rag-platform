@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DocuQA - Production RAG Platform & Evaluation Harness</title>
+    <meta name="description" content="Production-grade Document QA Bot using Retrieval-Augmented Generation with chunking strategies, cross-encoder re-ranking, token streaming, and an evaluation harness." />
+    <meta property="og:title" content="DocuQA - Production RAG Platform & Evaluation Harness" />
+    <meta property="og:description" content="Production-grade Document QA Bot using Retrieval-Augmented Generation with chunking strategies, cross-encoder re-ranking, token streaming, and an evaluation harness." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        // Suppress unhandled promise rejections from Vite WebSocket in sandbox
+        window.addEventListener('unhandledrejection', function(event) {
+          if (event && event.reason && (
+            (event.reason.message && event.reason.message.includes('WebSocket')) ||
+            (typeof event.reason === 'string' && event.reason.includes('WebSocket')) ||
+            (event.reason.toString && event.reason.toString().includes('WebSocket'))
+          )) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        }, true);
+
+        // Suppress benign [vite] websocket connection error in iframe
+        const origError = console.error;
+        console.error = function(...args) {
+          if (typeof args[0] === 'string' && args[0].includes('[vite] failed to connect to websocket')) {
+            return;
+          }
+          if (args[0] && args[0].message && typeof args[0].message === 'string' && args[0].message.includes('WebSocket closed without opened')) {
+            return;
+          }
+          origError.apply(console, args);
+        };
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
