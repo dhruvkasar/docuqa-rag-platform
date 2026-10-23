@@ -25,8 +25,8 @@ A production-grade **Retrieval-Augmented Generation (RAG)** platform featuring m
                                             │
                                             ▼
                     ┌───────────────────────────────────────────────┐
-                    │      Stage 2: Bi-Encoder Dense Retrieval     │
-                    │   - L2-normalized 128-dim dense embeddings   │
+                    │      Stage 2: Bi-Encoder Dense Retrieval      │
+                    │   - L2-normalized 128-dim dense embeddings    │
                     │   - Top-K Candidate Pool (k = 15-20)          │
                     │   - Semantic Proposition Chunk Partitioning   │
                     └───────────────────────┬───────────────────────┘
@@ -42,9 +42,9 @@ A production-grade **Retrieval-Augmented Generation (RAG)** platform featuring m
                                             ▼
                     ┌───────────────────────────────────────────────┐
                     │      Stage 4: Grounded Answer Synthesis       │
-                    │   - Verifiable Inline Citations: [p.X, c.Y]   │
-                    │   - Strict Anti-Hallucination Guardrails      │
-                    │   - SSE Token Streaming via Gemini / OpenRouter│
+                    │  - Verifiable Inline Citations: [p.X, c.Y]    │
+                    │  - Strict Anti-Hallucination Guardrails       │
+                    │  - SSE Token Streaming via Gemini / OpenRouter│
                     └───────────────────────────────────────────────┘
 ```
 
