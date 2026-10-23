@@ -358,31 +358,45 @@ export async function parseAndProcessDocumentFile(
     const result = await mammoth.extractRawText({ arrayBuffer });
     extractedText = result.value;
   } else if (fileName.toLowerCase().endsWith('.pdf')) {
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const res = reader.result as string;
-        const commaIdx = res.indexOf(',');
-        resolve(commaIdx !== -1 ? res.slice(commaIdx + 1) : res);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+    // 1. Primary: Instant client-side PDF text extraction in browser (handles any file size, 0ms server latency)
+    try {
+      const { extractTextFromPdfClient } = await import('./pdfExtractor');
+      const clientResult = await extractTextFromPdfClient(file);
+      extractedText = clientResult.text;
+      detectedPageCount = clientResult.pageCount;
+    } catch (clientErr: any) {
+      console.warn('Client-side PDF extraction attempt notice:', clientErr?.message || clientErr);
+      // 2. Secondary fallback: Server-side PDF extraction endpoint
+      try {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const res = reader.result as string;
+            const commaIdx = res.indexOf(',');
+            resolve(commaIdx !== -1 ? res.slice(commaIdx + 1) : res);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
 
-    const resp = await fetch('/api/extract-text', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileBase64: base64, fileName })
-    });
+        const resp = await fetch('/api/extract-text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileBase64: base64, fileName })
+        });
 
-    if (!resp.ok) {
-      const errData = await resp.json().catch(() => ({}));
-      throw new Error(errData.error || 'Failed to extract text from PDF.');
+        if (!resp.ok) {
+          throw new Error('Server extraction failed');
+        }
+
+        const data = await resp.json();
+        extractedText = data.text || '';
+        detectedPageCount = data.pageCount || 1;
+      } catch {
+        // If both client and server failed, throw the clear client error message
+        throw new Error(clientErr?.message || 'Failed to extract text from PDF. Ensure the PDF contains readable text.');
+      }
     }
-
-    const data = await resp.json();
-    extractedText = data.text || '';
-    detectedPageCount = data.pageCount || 1;
   } else {
     throw new Error('Please upload a PDF, DOCX, or TXT file.');
   }

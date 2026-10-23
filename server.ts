@@ -6,7 +6,6 @@
 import express, { Request, Response } from 'express';
 import http from 'http';
 import { GoogleGenAI } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -20,17 +19,17 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json({ limit: '20mb' }));
 
-const apiKey = process.env.GEMINI_API_KEY || '';
-const openRouterApiKey = process.env.OPENROUTER_API_KEY || '';
-
-const ai = new GoogleGenAI({
-  apiKey: apiKey,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
+function getGoogleGenAI(customKey?: string) {
+  const key = customKey || process.env.GEMINI_API_KEY || '';
+  return new GoogleGenAI({
+    apiKey: key,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      },
     },
-  },
-});
+  });
+}
 
 interface ContextChunkPayload {
   id: string;
@@ -50,6 +49,7 @@ async function streamOpenRouter(
   modelName: string,
   res: Response
 ): Promise<boolean> {
+  const openRouterApiKey = process.env.OPENROUTER_API_KEY || '';
   if (!openRouterApiKey || openRouterApiKey === 'MY_OPENROUTER_API_KEY') {
     return false;
   }
@@ -131,10 +131,12 @@ async function streamOpenRouter(
  * Health & Config check
  */
 app.get('/api/health', (req: Request, res: Response) => {
+  const currentKey = process.env.GEMINI_API_KEY || '';
+  const currentOpenRouterKey = process.env.OPENROUTER_API_KEY || '';
   res.json({
     status: 'ok',
-    hasApiKey: Boolean(apiKey && apiKey !== 'MY_GEMINI_API_KEY'),
-    hasOpenRouterKey: Boolean(openRouterApiKey && openRouterApiKey !== 'MY_OPENROUTER_API_KEY'),
+    hasApiKey: Boolean(currentKey && currentKey !== 'MY_GEMINI_API_KEY'),
+    hasOpenRouterKey: Boolean(currentOpenRouterKey && currentOpenRouterKey !== 'MY_OPENROUTER_API_KEY'),
     models: {
       gemini: 'gemini-3.1-flash-lite',
       openRouterDefault: 'google/gemini-2.5-flash',
@@ -276,6 +278,9 @@ CORE OPERATING INSTRUCTIONS:
   try {
     let streamSuccess = false;
 
+    const apiKey = process.env.GEMINI_API_KEY || '';
+    const openRouterApiKey = process.env.OPENROUTER_API_KEY || '';
+
     // 1. If user explicitly selected OpenRouter
     if (provider === 'openrouter' && openRouterApiKey && openRouterApiKey !== 'MY_OPENROUTER_API_KEY') {
       try {
@@ -287,6 +292,7 @@ CORE OPERATING INSTRUCTIONS:
 
     // 2. Gemini execution (runs by default, or as failover if OpenRouter encounters errors)
     if (!streamSuccess && apiKey && apiKey !== 'MY_GEMINI_API_KEY') {
+      const ai = getGoogleGenAI(apiKey);
       const modelsToTry = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
 
       for (const modelName of modelsToTry) {
@@ -444,6 +450,7 @@ async function startServer() {
   const httpServer = http.createServer(app);
 
   if (!isProd) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,
