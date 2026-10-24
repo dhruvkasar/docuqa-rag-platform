@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="50%" stop-color="#4338ca" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+
+    <!-- Document Gradient -->
+    <linearGradient id="docGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+
+    <!-- Accent Gradient -->
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+
+    <!-- Sparkle Glow -->
+    <radialGradient id="sparkleGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#38bdf8" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Drop Shadow -->
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#1e1b4b" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base Container with Smooth Rounded Corners -->
+  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#bgGrad)" filter="url(#subtleShadow)" />
+  
+  <!-- Subtle Inner Border Highlight -->
+  <rect x="24" y="24" width="464" height="464" rx="108" fill="none" stroke="#818cf8" stroke-width="4" stroke-opacity="0.4" />
+
+  <!-- Stylized "D" + Document Core Symbol -->
+  <!-- Left Spine Pillar -->
+  <rect x="136" y="128" width="56" height="256" rx="16" fill="#ffffff" />
+
+  <!-- Distinctive D Outer Curve / Fold Architecture -->
+  <path d="M 172 128 L 272 128 C 352 128 404 180 404 256 C 404 332 352 384 272 384 L 172 384 Z" 
+        fill="none" 
+        stroke="#ffffff" 
+        stroke-width="54" 
+        stroke-linecap="round"
+        stroke-linejoin="round" />
+
+  <!-- Inner Intelligence Data Beams / Lines -->
+  <path d="M 230 216 L 290 216" stroke="url(#accentGrad)" stroke-width="22" stroke-linecap="round" />
+  <path d="M 230 256 L 314 256" stroke="url(#accentGrad)" stroke-width="22" stroke-linecap="round" />
+  <path d="M 230 296 L 274 296" stroke="url(#accentGrad)" stroke-width="22" stroke-linecap="round" />
+
+  <!-- RAG Sparkle / Retrieval AI Beacon in top-right -->
+  <circle cx="396" cy="116" r="44" fill="url(#sparkleGlow)" />
+  <path d="M 396 82 L 404 108 L 430 116 L 404 124 L 396 150 L 388 124 L 362 116 L 388 108 Z" fill="#38bdf8" />
+  <circle cx="396" cy="116" r="5" fill="#ffffff" />
+</svg>

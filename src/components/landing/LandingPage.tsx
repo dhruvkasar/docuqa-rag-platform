@@ -12,6 +12,7 @@ import { LiveRAGSimulator } from './LiveRAGSimulator';
 import { BentoGrid } from './BentoGrid';
 import { ModuleDeepDive } from './ModuleDeepDive';
 import { LandingFooter } from './LandingFooter';
+import { BeamsBackground } from '@/components/ui/beams-background';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -67,36 +68,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div ref={pageRef} className="min-h-screen w-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-sans selection:bg-indigo-500/20 selection:text-indigo-600 transition-colors">
-      {/* Top Navbar */}
-      <LandingNav
-        onLaunchWorkspace={onLaunchWorkspace}
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-        onOpenDocs={onOpenDocs}
-      />
-
-      <main className="relative z-10 space-y-8">
-        {/* Hero Section */}
-        <LandingHero
+      <BeamsBackground intensity="medium" className="bg-transparent dark:bg-neutral-950">
+        {/* Top Navbar */}
+        <LandingNav
           onLaunchWorkspace={onLaunchWorkspace}
-          onScrollToSimulator={handleScrollToSimulator}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          onOpenDocs={onOpenDocs}
         />
 
-        {/* Interactive Live RAG Simulator */}
-        <LiveRAGSimulator onLaunchWorkspace={onLaunchWorkspace} />
+        <main className="relative z-10 space-y-8">
+          {/* Hero Section */}
+          <LandingHero
+            onLaunchWorkspace={onLaunchWorkspace}
+            onScrollToSimulator={handleScrollToSimulator}
+          />
 
-        {/* Technical Architecture Bento-Grid */}
-        <BentoGrid />
+          {/* Interactive Live RAG Simulator */}
+          <LiveRAGSimulator onLaunchWorkspace={onLaunchWorkspace} />
 
-        {/* 3 Core Platform Modules Deep-Dive */}
-        <ModuleDeepDive onLaunchWorkspace={onLaunchWorkspace} />
-      </main>
+          {/* Technical Architecture Bento-Grid */}
+          <BentoGrid />
 
-      {/* Footer */}
-      <LandingFooter
-        onLaunchWorkspace={onLaunchWorkspace}
-        onOpenDocs={onOpenDocs}
-      />
+          {/* 3 Core Platform Modules Deep-Dive */}
+          <ModuleDeepDive onLaunchWorkspace={onLaunchWorkspace} />
+        </main>
+
+        {/* Footer */}
+        <LandingFooter
+          onLaunchWorkspace={onLaunchWorkspace}
+          onOpenDocs={onOpenDocs}
+        />
+      </BeamsBackground>
     </div>
   );
 };
