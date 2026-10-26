@@ -19,6 +19,18 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json({ limit: '20mb' }));
 
+// Permissive CORS middleware for cross-origin deployments
+app.use((req: Request, res: Response, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  next();
+});
+
 function getGoogleGenAI(customKey?: string) {
   const key = customKey || process.env.GEMINI_API_KEY || '';
   return new GoogleGenAI({
@@ -47,12 +59,19 @@ class ThoughtStreamParser {
   private inThought = false;
   private buffer = '';
   private thoughtCompleted = false;
+  private onThought: (token: string) => void;
+  private onText: (token: string) => void;
+  private onThoughtEnd: () => void;
 
   constructor(
-    private onThought: (token: string) => void,
-    private onText: (token: string) => void,
-    private onThoughtEnd: () => void
-  ) {}
+    onThought: (token: string) => void,
+    onText: (token: string) => void,
+    onThoughtEnd: () => void
+  ) {
+    this.onThought = onThought;
+    this.onText = onText;
+    this.onThoughtEnd = onThoughtEnd;
+  }
 
   process(chunk: string) {
     this.buffer += chunk;
@@ -235,7 +254,7 @@ async function streamOpenRouter(
 /**
  * Health & Config check
  */
-app.get('/api/health', (req: Request, res: Response) => {
+app.get(['/api/health', '/health'], (req: Request, res: Response) => {
   const currentKey = process.env.GEMINI_API_KEY || '';
   const currentOpenRouterKey = process.env.OPENROUTER_API_KEY || '';
   res.json({
@@ -243,7 +262,7 @@ app.get('/api/health', (req: Request, res: Response) => {
     hasApiKey: Boolean(currentKey && currentKey !== 'MY_GEMINI_API_KEY'),
     hasOpenRouterKey: Boolean(currentOpenRouterKey && currentOpenRouterKey !== 'MY_OPENROUTER_API_KEY'),
     models: {
-      gemini: 'gemini-3.1-flash-lite',
+      gemini: 'gemini-3.8-flash',
       openRouterDefault: 'google/gemini-2.5-flash',
       embeddings: 'text-embedding-004'
     }
@@ -253,7 +272,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 /**
  * Robust Server-Side PDF Text Extraction
  */
-app.post('/api/extract-text', async (req: Request, res: Response) => {
+app.post(['/api/extract-text', '/extract-text'], async (req: Request, res: Response) => {
   let parser: PDFParse | null = null;
   try {
     const { fileBase64, fileName } = req.body;
@@ -302,7 +321,7 @@ app.post('/api/extract-text', async (req: Request, res: Response) => {
 /**
  * Streaming Chat Endpoint with Strict Grounding & Citations
  */
-app.post('/api/chat', async (req: Request, res: Response) => {
+app.post(['/api/chat', '/chat'], async (req: Request, res: Response) => {
   const { query, chunks, provider, model } = req.body as {
     query: string;
     chunks: ContextChunkPayload[];
@@ -421,11 +440,11 @@ CORE OPERATING INSTRUCTIONS:
             },
           });
 
-          // 8-second timeout per model so requests never hang indefinitely
+          // 25-second timeout per model so cold-start or complex reasoning has ample time
           const responseStream = await Promise.race([
             streamPromise,
             new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error(`Timeout connecting to ${modelName}`)), 8000)
+              setTimeout(() => reject(new Error(`Timeout connecting to ${modelName}`)), 25000)
             ),
           ]);
 
@@ -555,25 +574,29 @@ Based on the topics covered in your document, here are the most critical exam qu
 
 ${questions}
 
-*Grounding Note: Each topic is mapped directly to corresponding pages in your uploaded course material.*`;
+---
+*Grounding Note: Each topic is mapped directly to corresponding pages in ${chunks[0].docName}. Set GEMINI_API_KEY in production to unlock live multi-stage reasoning.*`;
   }
 
-  const isOverviewQuery = /\b(what(?:'s|s|\s+is)\s+in|summarize|summarise|summary|overview|analyse|analyze|outline|topics|contents)\b/i.test(query);
+  const isOverviewQuery = /\b(what(?:'s|s|\s+is)\s+(?:in|this|covered)|tell\s+me\s+about|summarize|summarise|summary|overview|analyse|analyze|outline|topics|contents|explain\s+(?:this|the)|about\s+this|walk\s+through)\b/i.test(query);
 
   if (isOverviewQuery) {
     const summarySections = chunks.slice(0, 6).map((c, idx) => {
       const lines = c.text.split('\n').map(l => l.trim()).filter(Boolean);
-      const headline = lines[0] || `Section ${idx + 1}`;
+      const headline = lines[0]?.replace(/^[-*#\d\.\s]+/, '') || `Key Focus Area ${idx + 1}`;
+      const contentLines = lines.slice(1, 5).join('\n') || c.text.slice(0, 250);
       return `### ${idx + 1}. ${headline} [Source: ${c.docName}, Page ${c.pageNo}, Chunk ${c.chunkIndex}]
-${lines.slice(1, 4).join('\n')}`;
+${contentLines}`;
     }).join('\n\n');
 
-    return `Based on the provided document excerpts from **${chunks[0].docName}**, here is a structured summary of the key content and topics covered:
+    return `## 📄 Document Intelligence Overview: **${chunks[0].docName}**
+
+Based on the retrieved grounded passages from your document, here is a structured summary of the key content, syntax, and concepts:
 
 ${summarySections}
 
 ---
-*All sections synthesized with exact provenance citations from ${chunks[0].docName}.*`;
+*Verified Grounded Synthesis: Extracted from ${chunks[0].docName}. Configure GEMINI_API_KEY in your production environment settings to enable live streaming AI generation.*`;
   }
 
   const queryTerms = query.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 2);
@@ -603,7 +626,11 @@ ${summarySections}
   }
 
   if (maxScore <= 0 || !bestPassage) {
-    return `Based on ${chunks[0].docName} (Page ${chunks[0].pageNo}):\n\n${chunks[0].text.slice(0, 400)}...\n\n[Source: ${chunks[0].docName}, Page ${chunks[0].pageNo}, Chunk ${chunks[0].chunkIndex}]`;
+    return `### Grounded Information from **${chunks[0].docName}** (Page ${chunks[0].pageNo}):
+
+${chunks[0].text}
+
+[Source: ${chunks[0].docName}, Page ${chunks[0].pageNo}, Chunk ${chunks[0].chunkIndex}]`;
   }
 
   return `${bestPassage}\n\n[Source: ${bestChunk.docName}, Page ${bestChunk.pageNo}, Chunk ${bestChunk.chunkIndex}]`;

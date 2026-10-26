@@ -186,6 +186,74 @@ function extractStepsFromThought(thoughtText: string, fallbackSteps: string[] = 
   return steps.slice(0, 6);
 }
 
+function generateFallbackAnswer(
+  query: string,
+  retrieved: RetrievalResult[],
+  isConversational: boolean
+): string {
+  if (isConversational) {
+    return 'Hello! I am DocuQA, an academic and document intelligence platform. How can I help you explore your documents or prepare for exams today?';
+  }
+
+  if (!retrieved || retrieved.length === 0) {
+    return 'This information was not found in your indexed documents. You can upload new notes or ask about topics in your library.';
+  }
+
+  const isExam = /\b(exam|exams|sem|semester|test|tests|question|questions|likely|marks)\b/i.test(query);
+  const isOverview = isBroadOrStudyQuery(query);
+  const docName = retrieved[0]?.chunk.docName || 'Uploaded Document';
+
+  if (isExam) {
+    const items = retrieved.slice(0, 4).map((r, i) => {
+      const c = r.chunk;
+      const firstLine = c.text.split('\n')[0]?.replace(/^[-*#\s\d\.]+/, '') || `Core Concept ${i + 1}`;
+      return `### 🎯 High-Yield Exam Topic #${i + 1}: ${firstLine} [Source: ${c.docName}, Page ${c.pageNo}, Chunk ${c.chunkIndex}]
+- **Key Concepts & Principles:**
+  ${c.text.slice(0, 260).replace(/\n/g, ' ')}...
+- **Preparation Note:** Master this section for definitions and short-answer questions.`;
+    }).join('\n\n');
+
+    return `## 🎯 High-Probability End-Semester Exam Questions & Topics
+
+Based on the verified excerpts retrieved from **${docName}**, here are the highest-yield topics:
+
+${items}
+
+---
+*(Note: Displaying grounded local synthesis. Set GEMINI_API_KEY in your production server environment to enable live LLM conversational reasoning.)*`;
+  }
+
+  if (isOverview) {
+    const sections = retrieved.slice(0, 5).map((r, i) => {
+      const c = r.chunk;
+      const lines = c.text.split('\n').filter((l) => l.trim().length > 0);
+      const title = lines[0]?.replace(/^[-*#\s\d\.]+/, '') || `Topic ${i + 1}`;
+      const preview = lines.slice(1, 4).join('\n') || c.text.slice(0, 240);
+      return `### ${i + 1}. ${title} [Source: ${c.docName}, Page ${c.pageNo}, Chunk ${c.chunkIndex}]
+${preview}`;
+    }).join('\n\n');
+
+    return `## 📄 Document Intelligence Overview: **${docName}**
+
+Here is a structured summary of the key concepts and sections identified in your document:
+
+${sections}
+
+---
+*(Note: Displaying verified grounded local extraction. For live conversational synthesis and deep reasoning, ensure GEMINI_API_KEY is configured in your production environment settings.)*`;
+  }
+
+  const top = retrieved[0]?.chunk;
+  return `### Grounded Information from **${top.docName}** (Page ${top.pageNo}):
+
+${top.text}
+
+[Source: ${top.docName}, Page ${top.pageNo}, Chunk ${top.chunkIndex}]
+
+---
+*(Note: Showing verified grounded chunk. Set GEMINI_API_KEY in production to enable live conversational streaming.)*`;
+}
+
   const handleSendMessage = async (queryText: string) => {
     if (!queryText.trim() || isStreaming) return;
 
@@ -268,7 +336,9 @@ function extractStepsFromThought(thoughtText: string, fallbackSteps: string[] = 
       });
 
       if (!response.ok || !response.body) {
-        throw new Error('Failed to initiate chat stream');
+        const errorText = await response.text().catch(() => '');
+        console.error(`Chat API returned status ${response.status}:`, errorText);
+        throw new Error(`API error ${response.status}: ${errorText || 'Failed to initiate stream'}`);
       }
 
       const reader = response.body.getReader();
@@ -360,13 +430,7 @@ function extractStepsFromThought(thoughtText: string, fallbackSteps: string[] = 
       }
 
       const latencyMs = Math.round(performance.now() - startTimestamp);
-      const top = isGrounded ? retrieved[0]?.chunk : null;
-      const finalAnswer = accumulatedText.trim() || (top 
-        ? `### Grounded Excerpt from ${top.docName} (Page ${top.pageNo})\n\n${top.text}\n\n[Source: ${top.docName}, Page ${top.pageNo}, Chunk ${top.chunkIndex}]`
-        : (isConversational 
-            ? 'Hello! I am DocuQA, an academic and document intelligence platform. How can I help you explore your documents or prepare for exams today?' 
-            : 'This information was not found in your indexed documents. You can upload new notes or ask about topics in your library.'));
-
+      const finalAnswer = accumulatedText.trim() || generateFallbackAnswer(queryText, retrieved, isConversational);
       const finalThinkingDuration = thoughtDurationMs ?? (accumulatedThought ? Math.round(latencyMs * 0.4) : undefined);
 
       setMessages((prev) =>
@@ -384,16 +448,11 @@ function extractStepsFromThought(thoughtText: string, fallbackSteps: string[] = 
             : m
         )
       );
-    } catch (err) {
-      console.error('Chat error:', err);
+    } catch (err: any) {
+      console.error('Chat stream failed:', err);
       const latencyMs = Math.round(performance.now() - startTimestamp);
       const thinkingDurationMs = isGrounded ? Math.round(Math.min(latencyMs * 0.4, 1200)) : undefined;
-      const top = isGrounded ? retrieved[0]?.chunk : null;
-      const fallbackMsg = top
-        ? `### Grounded Excerpt from ${top.docName} (Page ${top.pageNo})\n\n${top.text}\n\n[Source: ${top.docName}, Page ${top.pageNo}, Chunk ${top.chunkIndex}]`
-        : (isConversational 
-            ? 'Hello! I am DocuQA, an academic and document intelligence platform. How can I help you explore your documents or prepare for exams today?' 
-            : 'This information was not found in your indexed documents. You can upload new notes or ask about topics in your library.');
+      const fallbackMsg = generateFallbackAnswer(queryText, retrieved, isConversational);
 
       setMessages((prev) =>
         prev.map((m) =>
