@@ -17,7 +17,7 @@ export const ChatBubble = React.forwardRef<HTMLDivElement, ChatBubbleProps>(
         ref={ref}
         className={cn(
           "flex gap-3 max-w-[92%] md:max-w-[85%] group relative",
-          variant === "sent" ? "ml-auto flex-row-reverse" : "mr-auto flex-row w-full",
+          variant === "sent" ? "ml-auto flex-row-reverse w-fit" : "mr-auto flex-row w-full",
           className
         )}
         {...props}
@@ -57,7 +57,7 @@ const chatBubbleMessageVariants = cva(
   {
     variants: {
       variant: {
-        sent: "bg-primary text-primary-foreground font-normal rounded-tr-xs shadow-xs",
+        sent: "bg-primary text-primary-foreground font-normal rounded-tr-xs shadow-xs w-fit max-w-full inline-block break-words",
         received:
           "bg-card text-card-foreground border border-border/80 rounded-tl-xs w-full shadow-2xs",
       },

@@ -60,24 +60,24 @@ export const Header: React.FC<HeaderProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
-    <header className="h-13 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md px-4 md:px-6 flex items-center justify-between gap-4 shrink-0 z-30 select-none">
+    <header className="h-14 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 md:px-6 flex items-center justify-between gap-4 shrink-0 z-30 select-none transition-colors">
       {/* Brand & Document Drawer Trigger */}
       <div className="flex items-center gap-2">
         {onReturnToLanding ? (
           <button
             onClick={onReturnToLanding}
-            className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-semibold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-semibold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
             title="Return to Landing Page"
           >
-            <div className="w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white">
-              <span className="text-[11px] font-bold">D</span>
+            <div className="w-5 h-5 rounded-sm bg-neutral-900 dark:bg-white flex items-center justify-center text-white dark:text-neutral-900">
+              <span className="text-[11px] font-mono font-bold">D</span>
             </div>
             <span className="font-bold text-sm tracking-tight">DocuQA</span>
           </button>
         ) : (
           <div className="flex items-center gap-2 px-2 py-1.5">
-            <div className="w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white">
-              <span className="text-[11px] font-bold">D</span>
+            <div className="w-5 h-5 rounded-sm bg-neutral-900 dark:bg-white flex items-center justify-center text-white dark:text-neutral-900">
+              <span className="text-[11px] font-mono font-bold">D</span>
             </div>
             <span className="font-bold text-sm tracking-tight text-neutral-900 dark:text-white">DocuQA</span>
           </div>
@@ -85,23 +85,23 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onToggleSidebar}
-          className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
           title="Open Document Library"
         >
-          <FolderOpen className="w-3.5 h-3.5 text-neutral-400" />
-          <span className="text-[11px] font-mono text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.2 rounded">
+          <FolderOpen className="w-3.5 h-3.5 text-neutral-500" />
+          <span className="text-[11px] font-mono text-neutral-500">
             {docCount} files
           </span>
         </button>
       </div>
 
-      {/* Center: Minimalist Mode Switcher */}
-      <nav className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-800/80 p-1 rounded-xl shadow-2xs">
+      {/* Center: Minimalist Mode Switcher (Standardized 6px radius, Swiss high contrast) */}
+      <nav className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-900 p-1 rounded-md border border-neutral-200 dark:border-neutral-800">
         <button
           onClick={() => setActiveTab('chat')}
-          className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-sm transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === 'chat'
-              ? 'bg-white dark:bg-neutral-900 text-indigo-600 dark:text-indigo-400 shadow-xs ring-1 ring-neutral-200/50 dark:ring-neutral-700/50'
+              ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-2xs font-semibold'
               : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
           }`}
           title="Grounded Document Chat"
@@ -112,9 +112,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={() => setActiveTab('evaluation')}
-          className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-sm transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === 'evaluation'
-              ? 'bg-white dark:bg-neutral-900 text-indigo-600 dark:text-indigo-400 shadow-xs ring-1 ring-neutral-200/50 dark:ring-neutral-700/50'
+              ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-2xs font-semibold'
               : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
           }`}
           title="Automated Evaluation & Benchmarks"
@@ -126,9 +126,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={() => setActiveTab('experiments')}
-          className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-sm transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === 'experiments'
-              ? 'bg-white dark:bg-neutral-900 text-indigo-600 dark:text-indigo-400 shadow-xs ring-1 ring-neutral-200/50 dark:ring-neutral-700/50'
+              ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-2xs font-semibold'
               : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
           }`}
           title="Chunking & Re-Ranker Empirical Experiments"
@@ -146,10 +146,10 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => setSettingsOpen(!settingsOpen)}
             title="RAG Pipeline Settings"
-            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+            className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
               settingsOpen
-                ? 'bg-neutral-100 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white'
-                : 'border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                ? 'bg-neutral-100 dark:bg-neutral-800 border-neutral-400 dark:border-neutral-600 text-neutral-900 dark:text-white'
+                : 'border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900'
             }`}
           >
             <Sliders className="w-4 h-4" />
@@ -162,13 +162,13 @@ export const Header: React.FC<HeaderProps> = ({
                 className="fixed inset-0 z-30"
                 onClick={() => setSettingsOpen(false)}
               />
-              <div className="absolute right-0 mt-1.5 w-72 p-3.5 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xl z-40 space-y-3 text-xs">
+              <div className="absolute right-0 mt-2 w-72 p-4 bg-white dark:bg-neutral-900 rounded-md border border-neutral-200 dark:border-neutral-800 shadow-xl z-40 space-y-3 text-xs">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2 border-b border-neutral-100 dark:border-neutral-800">
                   <span className="font-semibold text-neutral-900 dark:text-white text-xs">
                     Pipeline Settings
                   </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 capitalize">
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-neutral-100 dark:bg-neutral-800 text-neutral-500 capitalize">
                     {strategy}
                   </span>
                 </div>
@@ -181,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <select
                     value={strategy}
                     onChange={(e) => setStrategy(e.target.value as ChunkingStrategy)}
-                    className="w-full bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white py-1.5 px-2.5 rounded-lg text-xs focus:outline-none cursor-pointer"
+                    className="w-full bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white py-1.5 px-2.5 rounded-md text-xs focus:outline-hidden cursor-pointer"
                   >
                     <option value="semantic">Semantic Proposition (Recommended)</option>
                     <option value="recursive">Recursive Character Splitter</option>
@@ -203,7 +203,7 @@ export const Header: React.FC<HeaderProps> = ({
                     type="checkbox"
                     checked={useReranker}
                     onChange={(e) => setUseReranker(e.target.checked)}
-                    className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+                    className="w-4 h-4 accent-neutral-900 dark:accent-white rounded-sm cursor-pointer"
                   />
                 </div>
 
@@ -227,7 +227,7 @@ export const Header: React.FC<HeaderProps> = ({
                             LLM Provider
                           </label>
                           {hasOpenRouterKey && (
-                            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">
+                            <span className="text-[9px] font-mono px-1 py-0.2 rounded-sm bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
                               OpenRouter Ready
                             </span>
                           )}
@@ -235,7 +235,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <select
                           value={provider}
                           onChange={(e) => setProvider(e.target.value as any)}
-                          className="w-full bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white py-1 px-2 rounded-lg text-xs focus:outline-none"
+                          className="w-full bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white py-1 px-2 rounded-md text-xs focus:outline-hidden"
                         >
                           <option value="auto">Auto (Gemini + Fallback)</option>
                           <option value="gemini">Google Gemini (Direct)</option>
@@ -254,7 +254,7 @@ export const Header: React.FC<HeaderProps> = ({
                           <select
                             value={openRouterModel}
                             onChange={(e) => setOpenRouterModel(e.target.value)}
-                            className="w-full bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white py-1 px-2 rounded-lg text-[11px] font-mono focus:outline-none"
+                            className="w-full bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white py-1 px-2 rounded-md text-[11px] font-mono focus:outline-hidden"
                           >
                             <option value="google/gemini-2.5-flash">google/gemini-2.5-flash</option>
                             <option value="deepseek/deepseek-chat">deepseek/deepseek-chat</option>
@@ -275,8 +275,8 @@ export const Header: React.FC<HeaderProps> = ({
         {/* System Architecture */}
         <button
           onClick={onOpenDocs}
-          title="Architecture & Docker Specs"
-          className="p-1.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          title="Architecture Specs"
+          className="p-1.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
         >
           <BookOpen className="w-4 h-4" />
         </button>
@@ -285,7 +285,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={() => setDarkMode(!darkMode)}
           title={darkMode ? 'Switch to Light' : 'Switch to Dark'}
-          className="p-1.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="p-1.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
         >
           {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>

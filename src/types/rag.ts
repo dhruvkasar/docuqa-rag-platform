@@ -60,6 +60,7 @@ export interface ChatMessage {
   strategyUsed?: ChunkingStrategy;
   rerankerEnabled?: boolean;
   isStreaming?: boolean;
+  isThinking?: boolean;
   reasoning?: string;
   reasoningSteps?: string[];
   thinkingDurationMs?: number;

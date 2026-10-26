@@ -581,25 +581,26 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   />
 
                   {/* Message Bubble Body */}
-                  <div className="flex-1 min-w-0">
+                  <div className={isUser ? "min-w-0 flex flex-col items-end" : "flex-1 min-w-0"}>
                     <ChatBubbleMessage
                       variant={isUser ? "sent" : "received"}
+                      className={isUser ? "w-fit max-w-full" : undefined}
                     >
                       {isUser ? (
                         /* Direct high-contrast text rendering for user messages */
-                        <p className="whitespace-pre-wrap leading-relaxed text-xs md:text-sm text-primary-foreground font-normal select-text">
+                        <p className="whitespace-pre-wrap leading-relaxed text-xs md:text-sm text-primary-foreground font-normal select-text break-words">
                           {msg.content}
                         </p>
                       ) : (
                         <div className="space-y-3">
-                          {/* Chain of Thought / Reasoning Accordion (Only for document-grounded queries) */}
-                          {msg.isGrounded === true && (msg.reasoningSteps?.length || msg.reasoning) ? (
+                          {/* Chain of Thought / Live AI Reasoning Accordion */}
+                          {(msg.isGrounded === true || msg.reasoning || msg.isThinking) && (msg.reasoningSteps?.length || msg.reasoning || msg.isThinking) ? (
                             <Reasoning
                               steps={msg.reasoningSteps}
                               reasoningText={msg.reasoning}
                               durationMs={msg.thinkingDurationMs}
-                              isThinking={msg.isStreaming && !msg.content}
-                              defaultOpen={false}
+                              isThinking={msg.isThinking ?? (msg.isStreaming && !msg.content)}
+                              defaultOpen={Boolean(msg.isThinking || msg.reasoning)}
                             />
                           ) : null}
 
@@ -618,21 +619,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                             <div className="pt-1">
                               {renderMarkdownContent(msg.content)}
                               {msg.isStreaming && (
-                                <span className="inline-block w-1.5 h-3.5 ml-1 bg-indigo-500 animate-pulse align-middle" />
+                                <span className="inline-block w-1.5 h-3.5 ml-1 bg-neutral-900 dark:bg-neutral-100 animate-pulse align-middle" />
                               )}
                             </div>
                           ) : msg.isStreaming ? (
-                            msg.isGrounded === true ? (
-                              <div className="space-y-2.5 py-1">
-                                <ShimmerReasoning activeStep="Embedding query & scanning semantic vector index..." />
-                                <ShimmerText lines={3} />
-                              </div>
-                            ) : (
-                              /* Clean text shimmer without retrieval reasoning headers for normal questions */
-                              <div className="py-1">
-                                <ShimmerText lines={2} />
-                              </div>
-                            )
+                            <div className="py-1">
+                              <ShimmerText lines={msg.isThinking ? 2 : 3} />
+                            </div>
                           ) : (
                             <span className="text-muted-foreground italic">No answer generated.</span>
                           )}

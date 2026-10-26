@@ -158,6 +158,34 @@ function isConversationalQuery(query: string): boolean {
   return false;
 }
 
+function extractStepsFromThought(thoughtText: string, fallbackSteps: string[] = []): string[] {
+  if (!thoughtText) return fallbackSteps;
+  const lines = thoughtText.split('\n');
+  const steps: string[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim().replace(/^[-*•\d\.\)]+\s*/, '').replace(/^[A-Za-z0-9]+:\s*/, '');
+    if (trimmed.length > 12 && trimmed.length < 180) {
+      if (!trimmed.startsWith('<') && !trimmed.startsWith('#') && !trimmed.startsWith('```')) {
+        steps.push(trimmed);
+      }
+    }
+  }
+
+  if (steps.length < 2) {
+    const sentences = thoughtText
+      .split(/(?<=[.?!])\s+/)
+      .map(s => s.trim().replace(/^[-*•\d\.\)]+\s*/, ''))
+      .filter(s => s.length > 15 && s.length < 160 && !s.startsWith('<') && !s.startsWith('#'));
+    if (sentences.length >= 2) {
+      return sentences.slice(0, 5);
+    }
+    return fallbackSteps.length > 0 ? fallbackSteps : ['Analyzing query context & document evidence'];
+  }
+
+  return steps.slice(0, 6);
+}
+
   const handleSendMessage = async (queryText: string) => {
     if (!queryText.trim() || isStreaming) return;
 
@@ -193,6 +221,13 @@ function isConversationalQuery(query: string): boolean {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
+    const initialSteps = isGrounded ? [
+      `Scanned semantic vector index across ${allCorpusChunks.length} chunks (${strategy} strategy)`,
+      useReranker 
+        ? `Cross-encoder re-ranking top candidates for factual alignment`
+        : `Retrieving top candidate chunks via cosine similarity`
+    ] : [];
+
     const initialAsstMessage: ChatMessage = {
       id: asstMsgId,
       role: 'assistant',
@@ -202,16 +237,10 @@ function isConversationalQuery(query: string): boolean {
       strategyUsed: strategy,
       rerankerEnabled: useReranker,
       isStreaming: true,
+      isThinking: true,
       isGrounded: isGrounded,
-      reasoningSteps: isGrounded ? [
-        `Generated dense vector embeddings for query tokens (${strategy} strategy)`,
-        `Scanned candidate propositions across ${allCorpusChunks.length} chunks`,
-        useReranker 
-          ? `Cross-encoder re-ranked top candidates, selecting best passages`
-          : `Retrieved candidate passages via cosine similarity`,
-        `Synthesizing grounded answer with verified document citations`
-      ] : undefined,
-      reasoning: isGrounded ? `Matched ${retrieved.filter(r => r.isTopK).length} primary chunks from candidate pool. Re-ranking verified highest factual alignment in ${retrieved[0]?.chunk.docName || 'indexed documents'}.` : undefined
+      reasoningSteps: initialSteps,
+      reasoning: ''
     };
 
     setMessages((prev) => [...prev, userMessage, initialAsstMessage]);
@@ -245,7 +274,10 @@ function isConversationalQuery(query: string): boolean {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulatedText = '';
+      let accumulatedThought = '';
       let streamBuffer = '';
+      const thoughtStartTime = performance.now();
+      let thoughtDurationMs: number | undefined;
 
       while (true) {
         const { value, done } = await reader.read();
@@ -263,11 +295,60 @@ function isConversationalQuery(query: string): boolean {
             if (dataStr === '[DONE]') break;
             try {
               const parsed = JSON.parse(dataStr);
+
+              // 1. Live stream of AI reasoning thoughts
+              if (parsed.thought) {
+                accumulatedThought += parsed.thought;
+                const dynamicSteps = extractStepsFromThought(accumulatedThought, initialSteps);
+                const currentDuration = Math.round(performance.now() - thoughtStartTime);
+
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === asstMsgId
+                      ? {
+                          ...m,
+                          reasoning: accumulatedThought,
+                          reasoningSteps: dynamicSteps,
+                          isThinking: true,
+                          thinkingDurationMs: currentDuration
+                        }
+                      : m
+                  )
+                );
+              }
+
+              // 2. Thinking phase completed event
+              if (parsed.thoughtDone) {
+                thoughtDurationMs = Math.round(performance.now() - thoughtStartTime);
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === asstMsgId
+                      ? {
+                          ...m,
+                          isThinking: false,
+                          thinkingDurationMs: thoughtDurationMs
+                        }
+                      : m
+                  )
+                );
+              }
+
+              // 3. Final answer text token
               if (parsed.text) {
+                if (thoughtDurationMs === undefined && accumulatedThought) {
+                  thoughtDurationMs = Math.round(performance.now() - thoughtStartTime);
+                }
                 accumulatedText += parsed.text;
                 setMessages((prev) =>
                   prev.map((m) =>
-                    m.id === asstMsgId ? { ...m, content: accumulatedText } : m
+                    m.id === asstMsgId
+                      ? {
+                          ...m,
+                          content: accumulatedText,
+                          isThinking: false,
+                          thinkingDurationMs: thoughtDurationMs ?? m.thinkingDurationMs
+                        }
+                      : m
                   )
                 );
               }
@@ -286,12 +367,20 @@ function isConversationalQuery(query: string): boolean {
             ? 'Hello! I am DocuQA, an academic and document intelligence platform. How can I help you explore your documents or prepare for exams today?' 
             : 'This information was not found in your indexed documents. You can upload new notes or ask about topics in your library.'));
 
-      const thinkingDurationMs = isGrounded ? Math.round(Math.min(latencyMs * 0.4, 1200)) : undefined;
+      const finalThinkingDuration = thoughtDurationMs ?? (accumulatedThought ? Math.round(latencyMs * 0.4) : undefined);
 
       setMessages((prev) =>
         prev.map((m) =>
           m.id === asstMsgId
-            ? { ...m, content: finalAnswer, isStreaming: false, latencyMs, thinkingDurationMs, isGrounded }
+            ? {
+                ...m,
+                content: finalAnswer,
+                isStreaming: false,
+                isThinking: false,
+                latencyMs,
+                thinkingDurationMs: finalThinkingDuration,
+                isGrounded
+              }
             : m
         )
       );
@@ -313,6 +402,7 @@ function isConversationalQuery(query: string): boolean {
                 ...m,
                 content: fallbackMsg,
                 isStreaming: false,
+                isThinking: false,
                 latencyMs,
                 thinkingDurationMs,
                 isGrounded

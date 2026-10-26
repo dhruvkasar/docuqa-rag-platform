@@ -6,18 +6,14 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Play, 
-  Sparkles, 
   FileText, 
   Layers, 
   ExternalLink, 
   CheckCircle2, 
-  Clock, 
   ArrowRight,
-  Sliders,
-  ChevronRight
+  Sliders
 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
 import { DEFAULT_DOC_ALPHABET, DEFAULT_DOC_UT1_ELECTRONICS, DEFAULT_DOC_RAG_WHITEPAPER } from '../../data/defaultDocuments';
 import { processDocumentChunks, cleanDocumentText } from '../../utils/chunking';
 import { retrieveAndRerank } from '../../utils/vectorEngine';
@@ -81,42 +77,42 @@ export const LiveRAGSimulator: React.FC<LiveRAGSimulatorProps> = ({ onLaunchWork
       setTimeout(() => {
         setActiveStep(3);
         setIsSimulating(false);
-      }, 350);
-    }, 350);
+      }, 300);
+    }, 300);
   };
 
   const topChunk = retrievalResult[0]?.chunk;
 
   return (
-    <section id="simulator" className="py-20 px-6 md:px-12 max-w-6xl mx-auto">
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Interactive Live Pipeline</span>
+    <section id="simulator" className="py-20 px-6 md:px-12 max-w-5xl mx-auto">
+      {/* Editorial Header */}
+      <div className="text-center mb-10">
+        <div className="text-xs font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-2">
+          03. Live Evaluation Pipeline
         </div>
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-neutral-900 dark:text-white">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-neutral-900 dark:text-white">
           Experience Multi-Stage Retrieval in Real Time
         </h2>
-        <p className="mt-2 text-xs md:text-sm text-neutral-600 dark:text-neutral-400 max-w-xl mx-auto">
+        <p className="mt-2 text-xs md:text-sm text-neutral-600 dark:text-neutral-400 max-w-xl mx-auto leading-relaxed">
           Test live dense vector search and cross-encoder re-ranking on indexed technical and financial documents.
         </p>
       </div>
 
-      {/* Simulator Container */}
-      <div className="bg-white dark:bg-neutral-900/90 rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-xl overflow-hidden p-6 md:p-8 space-y-6">
+      {/* Simulator Container (Standardized 6px / rounded-md radius, crisp hairline border) */}
+      <div className="bg-white dark:bg-neutral-900/60 rounded-md border border-neutral-200 dark:border-neutral-800 p-6 md:p-8 space-y-6">
         {/* Sample Prompt Selector Tabs */}
         <div>
-          <span className="text-xs font-medium text-neutral-400 block mb-2">
-            Select a verified benchmark scenario:
+          <span className="text-xs font-mono text-neutral-500 dark:text-neutral-400 block mb-2">
+            Select verified benchmark query:
           </span>
           <div className="flex flex-wrap gap-2">
             {SAMPLE_QUERIES.map((item, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSelectSample(idx)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-sm text-xs font-mono transition-colors cursor-pointer flex items-center gap-1.5 ${
                   selectedQueryIndex === idx
-                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs scale-[1.02]'
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-semibold'
                     : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                 }`}
               >
@@ -134,82 +130,82 @@ export const LiveRAGSimulator: React.FC<LiveRAGSimulatorProps> = ({ onLaunchWork
             onChange={(e) => setCustomQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && runSimulationAnimation()}
             placeholder="Type any test query..."
-            className="flex-1 text-xs md:text-sm bg-neutral-100/80 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="flex-1 text-xs md:text-sm bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 rounded-md px-4 py-2.5 text-neutral-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-neutral-900 dark:focus:ring-white"
           />
           <Button
             onClick={runSimulationAnimation}
             disabled={isSimulating}
-            className="h-11 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all shadow-xs shrink-0"
+            className="h-10 px-5 bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100 text-xs font-semibold rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors shrink-0"
           >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>{isSimulating ? 'Executing Pipeline...' : 'Run Pipeline'}</span>
+            <Play className="w-3 h-3 fill-current" />
+            <span>{isSimulating ? 'Scoring Propositions...' : 'Run Pipeline'}</span>
           </Button>
         </div>
 
         {/* Pipeline Multi-Stage Visualizer */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
           {/* Stage 1 */}
-          <div className={`p-4 rounded-2xl border transition-all ${
+          <div className={`p-4 rounded-md border transition-colors ${
             activeStep >= 1
-              ? 'bg-neutral-50 dark:bg-neutral-800/60 border-neutral-300 dark:border-neutral-700'
+              ? 'bg-neutral-50 dark:bg-neutral-950 border-neutral-300 dark:border-neutral-700'
               : 'bg-neutral-50/40 dark:bg-neutral-900/40 border-neutral-200 dark:border-neutral-800 opacity-50'
           }`}>
-            <div className="flex items-center justify-between text-xs font-semibold text-neutral-900 dark:text-white mb-1.5">
+            <div className="flex items-center justify-between text-xs font-semibold text-neutral-900 dark:text-white mb-1.5 font-mono">
               <span className="flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-[10px] flex items-center justify-center font-bold font-mono">
+                <span className="w-4 h-4 rounded-xs bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-[10px] flex items-center justify-center font-bold">
                   1
                 </span>
                 <span>Dense Bi-Encoder</span>
               </span>
-              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">
+              <span className="text-[10px] tabular-nums text-neutral-500">
                 12 Candidates
               </span>
             </div>
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
-              Query projected to 128-dim hypersphere; scans semantic proposition pool via cosine distance.
+              Query projected to dense hypersphere; scans semantic proposition pool via cosine similarity.
             </p>
           </div>
 
           {/* Stage 2 */}
-          <div className={`p-4 rounded-2xl border transition-all ${
+          <div className={`p-4 rounded-md border transition-colors ${
             activeStep >= 2
-              ? 'bg-neutral-50 dark:bg-neutral-800/60 border-neutral-300 dark:border-neutral-700'
+              ? 'bg-neutral-50 dark:bg-neutral-950 border-neutral-300 dark:border-neutral-700'
               : 'bg-neutral-50/40 dark:bg-neutral-900/40 border-neutral-200 dark:border-neutral-800 opacity-50'
           }`}>
-            <div className="flex items-center justify-between text-xs font-semibold text-neutral-900 dark:text-white mb-1.5">
+            <div className="flex items-center justify-between text-xs font-semibold text-neutral-900 dark:text-white mb-1.5 font-mono">
               <span className="flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-[10px] flex items-center justify-center font-bold font-mono">
+                <span className="w-4 h-4 rounded-xs bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-[10px] flex items-center justify-center font-bold">
                   2
                 </span>
-                <span>Cross-Encoder Re-rank</span>
+                <span>Cross-Encoder</span>
               </span>
-              <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400">
+              <span className="text-[10px] tabular-nums text-neutral-900 dark:text-white font-bold">
                 {retrievalResult[0] ? `${(retrievalResult[0].finalScore * 100).toFixed(1)}% Logit` : 'Scoring'}
               </span>
             </div>
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
-              Pairwise token interaction verifies entity bindings, exact numbers, and numeric accuracy.
+              Pairwise token cross-attention verifies entity bindings, exact numbers, and numeric accuracy.
             </p>
           </div>
 
           {/* Stage 3 */}
-          <div className={`p-4 rounded-2xl border transition-all ${
+          <div className={`p-4 rounded-md border transition-colors ${
             activeStep >= 3
-              ? 'bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-900'
+              ? 'bg-neutral-100 dark:bg-neutral-800 border-neutral-400 dark:border-neutral-700'
               : 'bg-neutral-50/40 dark:bg-neutral-900/40 border-neutral-200 dark:border-neutral-800 opacity-50'
           }`}>
-            <div className="flex items-center justify-between text-xs font-semibold text-neutral-900 dark:text-white mb-1.5">
+            <div className="flex items-center justify-between text-xs font-semibold text-neutral-900 dark:text-white mb-1.5 font-mono">
               <span className="flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 text-[10px] flex items-center justify-center font-bold font-mono">
+                <span className="w-4 h-4 rounded-xs bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-[10px] flex items-center justify-center font-bold">
                   3
                 </span>
-                <span>Grounded Citations</span>
+                <span className="text-neutral-900 dark:text-white">Grounded Citations</span>
               </span>
-              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">
-                Zero Hallucination
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                Pass Verified
               </span>
             </div>
-            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
+            <p className="text-[11px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
               Synthesizes answer with verifiable document citation tags linked to exact page propositions.
             </p>
           </div>
@@ -217,10 +213,10 @@ export const LiveRAGSimulator: React.FC<LiveRAGSimulatorProps> = ({ onLaunchWork
 
         {/* Live Synthesized Result Card */}
         {topChunk && (
-          <div className="p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 space-y-3.5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-200 dark:border-neutral-800 pb-3">
+          <div className="p-4 rounded-md bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-200 dark:border-neutral-800 pb-2">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-indigo-500" />
+                <FileText className="w-3.5 h-3.5 text-neutral-700 dark:text-neutral-300" />
                 <span className="font-semibold text-xs text-neutral-900 dark:text-white">
                   Grounded Evidence in {topChunk.docName}
                 </span>
@@ -230,44 +226,44 @@ export const LiveRAGSimulator: React.FC<LiveRAGSimulatorProps> = ({ onLaunchWork
                 <span>·</span>
                 <span>Chunk #{topChunk.chunkIndex}</span>
                 <span>·</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                <span className="text-neutral-900 dark:text-white font-bold tabular-nums">
                   Score: {retrievalResult[0]?.finalScore.toFixed(3)}
                 </span>
               </div>
             </div>
 
-            <p className="text-xs md:text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
+            <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed">
               {topChunk.text}
             </p>
 
-            {/* Interactive Citation Pills */}
+            {/* Interactive Citation Buttons */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="text-[10px] uppercase font-mono text-neutral-400">
+              <span className="text-[10px] uppercase font-mono text-neutral-500">
                 Grounded Citations:
               </span>
-              {retrievalResult.map((r, i) => (
+              {retrievalResult.map((r) => (
                 <button
                   key={r.chunk.id}
                   onClick={() => setSelectedChunk(selectedChunk?.id === r.chunk.id ? null : r.chunk)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium border transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-2.5 py-1 rounded-sm text-[11px] font-mono border transition-colors cursor-pointer flex items-center gap-1.5 ${
                     selectedChunk?.id === r.chunk.id
-                      ? 'bg-indigo-600 text-white border-indigo-600'
-                      : 'bg-white dark:bg-neutral-900 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/60'
+                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border-neutral-900 dark:border-white'
+                      : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                   }`}
                   title="Click to view passage excerpt"
                 >
                   <span>{r.chunk.docName.slice(0, 16)}… p.{r.chunk.pageNo}</span>
-                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                  <ExternalLink className="w-2.5 h-2.5 opacity-60" />
                 </button>
               ))}
             </div>
 
             {/* Expanded Chunk Details if clicked */}
             {selectedChunk && (
-              <div className="p-3.5 bg-white dark:bg-neutral-900 rounded-xl border border-indigo-200 dark:border-indigo-900 text-xs font-mono space-y-1 animate-in fade-in duration-150">
-                <div className="flex justify-between text-[10px] text-indigo-500 font-bold">
+              <div className="p-3 bg-white dark:bg-neutral-900 rounded-sm border border-neutral-300 dark:border-neutral-700 text-xs font-mono space-y-1">
+                <div className="flex justify-between text-[10px] text-neutral-500 font-bold">
                   <span>Passage Proposition: {selectedChunk.docName} (Page {selectedChunk.pageNo})</span>
-                  <span>{selectedChunk.tokenCount} tokens</span>
+                  <span className="tabular-nums">{selectedChunk.tokenCount} tokens</span>
                 </div>
                 <p className="text-neutral-700 dark:text-neutral-300 font-sans text-xs leading-relaxed">
                   {selectedChunk.text}
@@ -278,13 +274,13 @@ export const LiveRAGSimulator: React.FC<LiveRAGSimulatorProps> = ({ onLaunchWork
         )}
 
         {/* Footer Action */}
-        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">
-            Want to test this on your own company filings or lecture PDFs?
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-neutral-200 dark:border-neutral-800">
+          <span className="text-xs text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">
+            Test with custom corporate filings or lecture PDFs in the workspace.
           </span>
           <Button
             onClick={() => onLaunchWorkspace('chat')}
-            className="bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:opacity-90 rounded-xl text-xs font-semibold px-5 py-2.5 shadow-xs flex items-center gap-1.5 cursor-pointer"
+            className="bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100 rounded-md text-xs font-semibold px-4 py-2 shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors shrink-0"
           >
             <span>Launch Full Workspace with this Query</span>
             <ArrowRight className="w-3.5 h-3.5" />
